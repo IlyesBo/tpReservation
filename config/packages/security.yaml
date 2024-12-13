@@ -1,0 +1,51 @@
+security:
+    # Configuration des hashers de mot de passe
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # Configuration du fournisseur d'utilisateur
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    # Configurations des firewalls
+    firewalls:
+        # Définition de la section pour le développement, pour ne pas interférer avec le profiler, CSS, JS, etc.
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        # Configuration du firewall principal
+        main:
+            stateless: false
+            provider: app_user_provider
+
+            # Authentificateur personnalisé
+            custom_authenticator: App\Security\LoginFormAuthenticator
+
+            # Authentification via formulaire
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                default_target_path: user_reservations  # Rediriger vers /user/reservations après connexion réussie
+
+            # Définition du point d'entrée pour les utilisateurs anonymes
+            entry_point: App\Security\LoginFormAuthenticator
+
+            # Configuration de la déconnexion
+            logout:
+                path: app_logout
+                target: /
+
+            # Configuration pour "remember me"
+            remember_me:
+                secret: '%env(APP_SECRET)%'
+                lifetime: 604800
+                path: /
+
+    # Configuration de l'accès contrôlé, pour déterminer quels rôles peuvent accéder à quelles pages
+    access_control:
+        - { path: ^/user/reservations }
+        - { path: ^/admin, roles: ROLE_ADMIN }
